@@ -2,7 +2,6 @@
 
 set -euo pipefail
 
-# TODO: Ensure this is the correct GitHub homepage where releases can be downloaded for git-contrib.
 GH_REPO="https://github.com/git/git"
 TOOL_NAME="git-contrib"
 TOOL_TEST="git --version"
@@ -27,11 +26,12 @@ sort_versions() {
 list_github_tags() {
 	git ls-remote --tags --refs "$GH_REPO" |
 		grep -o 'refs/tags/.*' | cut -d/ -f3- |
-		sed 's/^v//' # NOTE: You might want to adapt this sed to remove non-version strings from tags
+		sed 's/^v//' |
+		grep -oE '^[0-9]+\.[0-9]+\.[0-9]+$' |
+		grep -v -e '^0\.' -e '^1\.'
 }
 
 list_all_versions() {
-	# TODO: Adapt this. By default we simply list the tag names from GitHub releases.
 	# Change this function if git-contrib has other means of determining installable versions.
 	list_github_tags
 }
@@ -41,7 +41,6 @@ download_release() {
 	version="$1"
 	filename="$2"
 
-	# TODO: Adapt the release URL convention for git-contrib
 	url="$GH_REPO/archive/v${version}.tar.gz"
 
 	echo "* Downloading $TOOL_NAME release $version..."
@@ -51,7 +50,7 @@ download_release() {
 install_version() {
 	local install_type="$1"
 	local version="$2"
-	local install_path="${3%/bin}/bin"
+	local install_path="${3%/bin}"
 
 	if [ "$install_type" != "version" ]; then
 		fail "asdf-$TOOL_NAME supports release installs only"
@@ -59,13 +58,22 @@ install_version() {
 
 	(
 		mkdir -p "$install_path"
-		cp -r "$ASDF_DOWNLOAD_PATH"/* "$install_path"
-
-		# TODO: Assert git-contrib executable exists.
+		cd "$ASDF_DOWNLOAD_PATH"
+		make configure
+		./configure --prefix="$install_path"
+		make
+		make install
 		local tool_cmd
 		tool_cmd="$(echo "$TOOL_TEST" | cut -d' ' -f1)"
-		test -x "$install_path/$tool_cmd" || fail "Expected $install_path/$tool_cmd to be executable."
-
+		test -x "$install_path/bin/$tool_cmd" || fail "Expected $install_path/bin/$tool_cmd to be executable."
+		# git-jump
+		test -x contrib/git-jump || fail "Expected git-jump to be executable."
+		cp contrib/git-jump "$install_path/bin/."
+		# diff-highlight
+		cd contrib/diff-highlight
+		make
+		test -x diff-highlight || fail "Expected diff-highlight to be executable."
+		cp diff-highlight "$install_path/bin/."
 		echo "$TOOL_NAME $version installation was successful!"
 	) || (
 		rm -rf "$install_path"
