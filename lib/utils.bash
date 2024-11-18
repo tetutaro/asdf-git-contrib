@@ -67,8 +67,8 @@ install_version() {
 		tool_cmd="$(echo "$TOOL_TEST" | cut -d' ' -f1)"
 		test -x "$install_path/bin/$tool_cmd" || fail "Expected $install_path/bin/$tool_cmd to be executable."
 		# git-jump
-		test -x contrib/git-jump || fail "Expected git-jump to be executable."
-		cp contrib/git-jump "$install_path/bin/."
+		test -x contrib/git-jump/git-jump || fail "Expected git-jump to be executable."
+		cp contrib/git-jump/git-jump "$install_path/bin/."
 		# diff-highlight
 		cd contrib/diff-highlight
 		make
