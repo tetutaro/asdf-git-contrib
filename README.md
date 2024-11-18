@@ -21,7 +21,7 @@
 # Dependencies
 
 - `bash`, `curl`, `tar`, and [POSIX utilities](https://pubs.opengroup.org/onlinepubs/9699919799/idx/utilities.html).
-- `autoconf`, `gcc`, `gettext`, `make`, `libiconv`, `openssl`, `unzip`, `zlib`
+- `autoconf`, `gcc`, `gettext`, `make`, `openssl`, `unzip`
 
 # Install
 
